@@ -14,7 +14,7 @@
 
 
 /* CSS */
-.button-17 {
+button.button-17 {
   align-items: center;
   appearance: none;
   background-color: #fff;
@@ -111,4 +111,10 @@
 .hidden { display: none; }
 .win { outline: 6px solid rgba(255,215,0,.7); box-shadow: 0 0 18px rgba(255,215,0,.7); }
 .dim { opacity: .6; }
+
+button.btn {
+  background-color: rgb(252, 250, 250);
+  color: #010101;
+}
+
 

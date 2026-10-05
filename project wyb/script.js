@@ -1,16 +1,27 @@
 const characters = [
-  { name: "Bangchan",     img: "assets/chan photocard.jpeg" },
-  { name: "Han",  img: "assets/hannie photocard.jpg" },
-  { name: "Leeknow",  img: "assets/lino photocard.jpg" },
-  { name: "Felix",  img: "assets/lix photocard.jpeg" },
-  { name: "Changbin",     img: "assets/bin photocard.jpg" },
-  { name: "Seungmin",  img: "assets/sm photocard.jpg" },
-  { name: "Hyunjin",  img: "assets/jin photocard.jpeg" },
-  { name: "I.N",  img: "assets/in photocard.jpeg" }
-  
+  { name: "Bangchan", img: "assets/chan photocard.jpeg" },
+  { name: "Han", img: "assets/hannie photocard.jpg" },
+  { name: "Leeknow", img: "assets/lino photocard.jpg" },
+  { name: "Felix", img: "assets/lix photocard.jpeg" },
+  { name: "Changbin", img: "assets/bin photocard.jpg" },
+  { name: "Seungmin", img: "assets/sm photocard.jpg" },
+  { name: "Hyunjin", img: "assets/jin photocard.jpeg" },
+  { name: "I.N", img: "assets/in photocard.jpeg" }
 ];
 
-const state = { round: characters.slice(), index: 0, roundNumber: 1, champion: null, nextRound: [] };
+// Fisher-Yates Shuffle Algorithm
+const shuffle = array => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
+// Before: const state = { round: characters.slice(), ... };
+// After:
+const state = { round: shuffle(characters.slice()), index: 0, roundNumber: 1, champion: null, nextRound: [] };
+
 
 const ui = {
   game:   document.getElementById("game"),
@@ -35,13 +46,16 @@ ui.game.before(ui.status);
 
 const votes = [ui.vote1, ui.vote2];
 const setStatus = t => ui.status.textContent = t;
-const setButton = on => votes.forEach(b => b.disabled = !on); // Fixed: vote -> votes
+const setButton = on => votes.forEach(b => b.disabled = !on); 
 const clearStyle = () => ui.cards.forEach(c => c.classList.remove("win", "dim"));
 const highlightWin = win => ui.cards.forEach((c, i) => {
   c.classList.toggle("win", i === win);
-  c.classList.toggle("dim", i !== win); // Fixed: changed === to !== so the loser dims
+  c.classList.toggle("dim", i !== win); 
 });
 
+ui.replay = el("button", "button-17 hidden", "Replay");
+ui.replay.style.marginTop = "2.5rem";
+ui.game.after(ui.replay);
 
 function getPair() {
   const i = state.index * 2;
@@ -52,12 +66,45 @@ function showPair() {
   const [a, b] = getPair();
   ui.c1Img.src = a.img; ui.c1Name.textContent = a.name;
   ui.c2Img.src = b.img; ui.c2Name.textContent = b.name;
-  setButton(true); // Fixed: setButtons -> setButton
-  clearStyle(); // Fixed: clearstyles -> clearStyle
-  setStatus(state.round.length === 7 ? "Final Round" : `Round ${state.roundNumber}`); // Fixed: single quotes -> backticks
+  setButton(true); 
+  clearStyle(); 
+  setStatus(state.round.length === 2 ? "Final Round" : `Round ${state.roundNumber}`); // Fixed: 2 items left means final round
 }
 
-function vote(side) { // Fixed: added side parameter to fix reference error
+function replay() {
+  Object.assign(state, {
+    round: shuffle(characters.slice()),
+    index: 0,
+    roundNumber: 1,
+    champion: null,
+    nextRound: []
+  });
+
+  document.querySelectorAll(".reason-line").forEach(n => n.remove());
+
+  votes.forEach(b => {
+    b.classList.remove("hidden");
+    b.disabled = false;
+  });
+
+  ui.replay.classList.add("hidden");
+
+  clearStyle();
+  showPair();
+}
+
+function announceChampion() {                                    
+  setStatus(`${state.champion.name} is the Champion! 🎉`);
+  votes.forEach(b => b.classList.add("hidden"));    
+  const reason = prompt(`Why did you choose ${state.champion.name}?`);   
+  if (reason && reason.trim()) {                                         
+    const p = el("p", "subtitle reason-line", `Reason: ${reason.trim()}`);
+    p.style.marginTop = "0.5rem"; ui.status.after(p);
+  }
+  ui.replay.classList.remove("hidden");                                                         
+}
+
+function vote(side) { 
   setButton(false);
   highlightWin(side);
   
@@ -67,7 +114,6 @@ function vote(side) { // Fixed: added side parameter to fix reference error
   
   setTimeout(() => {
     state.index++;
-    state.roundNumber++; // Add this line here to count every match
     if (state.index * 2 < state.round.length) {
       showPair();
     } else {
@@ -78,21 +124,21 @@ function vote(side) { // Fixed: added side parameter to fix reference error
 
 function goNextRound() {
   if (state.nextRound.length === 1) {
-    state.champion = state.nextRound[0]; // Fixed: extract the object from the array
-    setStatus(`Your bias is ${state.champion.name}!`);
-    setButton(false);
-    return;
+      state.champion = state.nextRound[0]; 
+      announceChampion(); 
+      return;
   }
-  
   state.round = state.nextRound.slice();
   state.nextRound = [];
   state.index = 0;
-  // state.roundNumber++; // Remove or comment out this line
+  state.roundNumber++; // Increments round tracker properly now
   showPair();
 }
+
 // Event Listeners
-ui.vote1.addEventListener("click", () => vote(0)); // Fixed: explicitly passing side 0
-ui.vote2.addEventListener("click", () => vote(1)); // Fixed: explicitly passing side 1
+ui.vote1.addEventListener("click", () => vote(0)); 
+ui.vote2.addEventListener("click", () => vote(1)); 
+ui.replay.addEventListener("click", replay);
 
 // Start the game
 showPair();
