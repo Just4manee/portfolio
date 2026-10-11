@@ -1,0 +1,17 @@
+/* 1. Main container styles */
+body{
+    background-image: url("https://i.pinimg.com/736x/72/4c/f2/724cf2ed4d658f18e50243df3d390fc9.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    font-family: "Oregano", cursive !important;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.bg{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70vh;
+}
+
